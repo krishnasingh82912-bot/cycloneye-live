@@ -70,18 +70,18 @@ class CyclonEyeHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def do_GET(self):
+  def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
 
         if path.startswith('/api/'):
             return self.handle_api_get(path, query)
-        
+
         file_path = os.path.join(os.path.dirname(__file__), path.lstrip('/'))
-       if not os.path.exists(file_path) and not path.startswith('/style') and not path.startswith('/css') and not path.startswith('/js'):
+        if not os.path.exists(file_path) and not path.startswith('/style') and not path.startswith('/css') and not path.startswith('/js'):
             self.path = '/index.html'
-        
+
         return super().do_GET()
 
     def do_POST(self):
