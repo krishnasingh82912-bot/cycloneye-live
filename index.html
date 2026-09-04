@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyclonEye — From Prediction to Preparedness</title>
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Custom Styles -->
+<link rel="stylesheet" href="styles/main.css">
+<link rel="stylesheet" href="styles/map.css">
+</head>
+<body>
+
+<!-- ============================================================ LANDING PAGE ============================================================ -->
+<div id="landing" class="hidden">
+  <div class="land-nav">
+    <div class="brand">
+      <div class="mark">🌀</div>
+      <div><span class="name">CyclonEye</span><span class="tag">From Prediction to Preparedness</span></div>
+    </div>
+    <div class="land-links">
+      <a href="#features" onclick="enterApp()">Features</a>
+      <a href="#about" onclick="enterApp()">AI Prediction Engine</a>
+      <a href="#sources" onclick="enterApp()">Data Sources</a>
+    </div>
+    <button class="btn-outline" onclick="enterApp()">Open Live Dashboard →</button>
+  </div>
+
+  <div class="land-hero">
+    <div class="land-copy">
+      <h1>A Safer Tomorrow Through <span>AI Preparedness</span></h1>
+      <p>Next-generation tropical cyclone detection, trajectory forecasting, Sentinel SAR flood extent mapping, and disaster risk management for India's coastal regions.</p>
+      <div class="land-ctas">
+        <button class="btn-primary" onclick="enterApp()">Launch Dashboard ⚡</button>
+        <button class="btn-ghost" onclick="enterApp()">▷ Explore Active Systems</button>
+      </div>
+      <div class="land-stats">
+        <div class="land-stat"><span class="ico">🛰️</span><div><b>Real-Time Feeds</b><span>IMD · INSAT-3DR · NOAA</span></div></div>
+        <div class="land-stat"><span class="ico">🧠</span><div><b>AI Trajectory</b><span>Track · Intensity · Risk</span></div></div>
+        <div class="land-stat"><span class="ico">🛡️</span><div><b>Life Safety</b><span>Shelters · Routes · Alerts</span></div></div>
+      </div>
+    </div>
+    <div class="land-visual">
+      <div class="preview-badge">
+        <span style="font-size:20px;">🌀</span>
+        <div><b>Category 3 System Tracked</b><br><span style="color:var(--text-faint);">North Bay of Bengal · Wind 165 km/h</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ APP SHELL ============================================================ -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sb-brand" onclick="showLanding()">
+      <div class="mark">🌀</div><span class="name">CyclonEye</span>
+    </div>
+    <button class="nav-item active" data-view="dashboard"><span class="ico">▦</span>Dashboard</button>
+    <button class="nav-item" data-view="ml-model"><span class="ico">🧠</span>ML Model &amp; Analytics</button>
+    <button class="nav-item" data-view="live"><span class="ico">📡</span>Live Monitoring</button>
+    <button class="nav-item" data-view="tracking"><span class="ico">🎯</span>Cyclone Tracking</button>
+    <button class="nav-item" data-view="prediction"><span class="ico">⛈️</span>Cyclone Prediction</button>
+    <button class="nav-item" data-view="formation"><span class="ico">🌪️</span>Formation Risk</button>
+    <button class="nav-item" data-view="flood"><span class="ico">🌊</span>Flood Mapping</button>
+    <button class="nav-item" data-view="infra"><span class="ico">🏗️</span>Infrastructure Risk</button>
+    <button class="nav-item" data-view="shelters"><span class="ico">🏠</span>Shelters &amp; Routes</button>
+    <button class="nav-item" data-view="alerts"><span class="ico">🔔</span>Alerts &amp; Notifications</button>
+    <button class="nav-item" data-view="historical"><span class="ico">🕘</span>Historical Cyclones</button>
+    <button class="nav-item" data-view="analytics"><span class="ico">📊</span>Analytics &amp; Reports</button>
+    <div class="nav-divider"></div>
+    <button class="nav-item" data-view="sources"><span class="ico">🗄️</span>Data Sources</button>
+    <button class="nav-item" data-view="settings"><span class="ico">⚙️</span>Settings</button>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-left">
+        <div class="tb-title" id="tb-title">Dashboard</div>
+        <div class="tb-sub" id="tb-sub">Pan-India Coastal Disaster Intelligence &amp; ML Prediction Engine</div>
+      </div>
+      <div class="tb-center">
+        <div class="location-nav-group">
+          <select id="stateSelect" class="loc-dropdown"><option value="all">All India States</option></select>
+          <select id="districtSelect" class="loc-dropdown"><option value="all">Select District</option></select>
+        </div>
+        <div class="search-box">
+          🔍 <input type="text" id="globalSearch" placeholder="Search location (e.g. Mumbai, Chennai, Puri)..." />
+        </div>
+      </div>
+      <div class="tb-right">
+        <button class="btn-outline" id="themeToggleBtn" onclick="toggleTheme()" style="padding:6px 12px;font-size:12px;gap:6px;" title="Switch Theme (Dark / Light)">
+          🌙 Dark
+        </button>
+        <div class="tb-time" id="tb-time">—</div>
+        <div class="mode-badge live" id="modeBadge" title="Click to toggle system mode (LIVE MODE / DEMO MODE)" onclick="toggleSystemMode()">
+          <span class="pulse-dot"></span>LIVE MODE
+        </div>
+      </div>
+    </div>
+
+    <div class="content" id="content">
+
+      <!-- ============ DASHBOARD ============ -->
+      <section class="view active" id="view-dashboard">
+        <div class="grid g4" style="margin-bottom:16px;">
+          <div class="card stat-card"><div class="stat-ico" style="background:rgba(240,71,63,.15);">🌀</div><div><b id="dashActiveCount">2</b><span>Active Systems</span></div></div>
+          <div class="card stat-card"><div class="stat-ico" style="background:rgba(240,168,60,.15);">⚠️</div><div><b id="dashRiskZones">12</b><span>High Risk Zones</span></div></div>
+          <div class="card stat-card"><div class="stat-ico" style="background:rgba(47,140,240,.15);">👥</div><div><b id="dashAlertedStates">9</b><span>Coastal States Alerted</span></div></div>
+          <div class="card stat-card"><div class="stat-ico" style="background:rgba(164,99,240,.15);">📍</div><div><b id="dashDistrictsCount">42</b><span>Districts Monitored</span></div></div>
+        </div>
+
+        <!-- ML RISK PREDICTION & EXPLAINABILITY ROW -->
+        <div class="grid g-2-1" style="margin-bottom:16px;">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Pan-India Coastal Disaster Map</h3><div class="sub" id="currentLocSub">Selected: Puri, Odisha (19.81° N, 85.83° E)</div></div>
+              <span class="pill pill-red" id="overallRiskBadge">OVERALL RISK: HIGH (81/100)</span>
+            </div>
+            <div id="dashboardMap" class="map-container"></div>
+          </div>
+
+          <!-- WHY THIS PREDICTION? EXPLAINABILITY CARD -->
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Why This Prediction?</h3><div class="sub">ML Feature Importance Drivers</div></div>
+              <span class="pill pill-blue" id="mlConfidenceTag">Confidence: 94.8%</span>
+            </div>
+            <div style="font-size:11.5px;color:var(--text-faint);margin-bottom:12px;">Top contributing factors to current coastal risk score:</div>
+            <div id="explainabilityList"></div>
+            <div class="footer-note" style="margin-top:14px;padding:10px 12px;">
+              💡 <b>Explainable AI:</b> Risk drivers are calculated dynamically by the CyclonEye ML Engine across weather, ocean, SAR, and geographic parameters.
+            </div>
+          </div>
+        </div>
+
+        <div class="grid g4">
+          <div class="card" onclick="switchView('prediction')" style="cursor:pointer;"><div class="mini-stat"><div class="lbl">⚡ Cyclone Risk</div><div class="val" id="cardCycloneRisk" style="color:var(--red);">82% High</div></div></div>
+          <div class="card" onclick="switchView('flood')" style="cursor:pointer;"><div class="mini-stat"><div class="lbl">🌊 Flood Risk</div><div class="val" id="cardFloodRisk" style="color:var(--cyan);">91% High</div></div></div>
+          <div class="card" onclick="switchView('infra')" style="cursor:pointer;"><div class="mini-stat"><div class="lbl">🏗️ Infra Vulnerability</div><div class="val" id="cardInfraRisk" style="color:var(--amber);">68% Moderate</div></div></div>
+        </div>
+      </section>
+
+      <!-- ============ ML MODEL & ANALYTICS ============ -->
+      <section class="view" id="view-ml-model">
+        <div class="grid g-2-1" style="margin-bottom:16px;">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>CyclonEye ML Engine Architecture</h3><div class="sub">Hybrid XGBoost + LSTM + U-Net SAR Flood Segmentation Architecture</div></div>
+              <span class="pill pill-green" id="mlStatusPill">🟢 LIVE OPERATIONAL STREAM</span>
+            </div>
+
+            <div class="grid g2" style="margin-bottom:16px;">
+              <div class="mini-stat"><div class="lbl">📊 Training Dataset Size</div><div class="val" id="mlSamplesCount">14,250 Records</div></div>
+              <div class="mini-stat"><div class="lbl">⚡ Input Feature Vectors</div><div class="val" id="mlFeatureCount">19 Features</div></div>
+              <div class="mini-stat"><div class="lbl">🎯 Training Accuracy</div><div class="val" id="mlTrainAcc" style="color:var(--green);">94.2 %</div></div>
+              <div class="mini-stat"><div class="lbl">🧪 Validation Accuracy</div><div class="val" id="mlValAcc" style="color:var(--cyan);">91.8 %</div></div>
+            </div>
+
+            <div class="env-row"><span class="l">F1 Score (Risk Classifier)</span><span class="v" id="mlF1" style="color:var(--cyan);">0.91</span></div>
+            <div class="env-row"><span class="l">RMSE (Intensity Predictor)</span><span class="v" id="mlRmse">4.12 hPa</span></div>
+            <div class="env-row"><span class="l">Last Training Pipeline Run</span><span class="v" id="mlLastRun">2026-09-04 19:40 IST</span></div>
+            <div class="env-row"><span class="l">Model Version</span><span class="v">v1.0 (Pan-India Generalized)</span></div>
+
+            <div style="display:flex;gap:10px;margin-top:18px;">
+              <button class="btn-sm" id="btnTrainModel">⚡ Train Model (Simulation)</button>
+              <button class="btn-outline" id="btnEvalModel">🧪 Evaluate Model</button>
+              <button class="btn-outline" id="btnRunPred">🎯 Run Pan-India Inference</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div><h3>ML Pipeline Execution Log</h3><div class="sub">Real-time model training &amp; feature extraction terminal</div></div>
+            </div>
+            <div class="terminal-box" id="mlTerminalLog">
+              <span style="color:var(--cyan);">$ cycloneye-ml --status</span><br>
+              [INFO] CyclonEye ML Engine v1.0 initialized.<br>
+              [INFO] Loaded 14,250 records across 9 coastal states &amp; 4 UTs.<br>
+              [INFO] Model Architecture: XGBoost (Tabular Risk) + LSTM (Trajectory) + U-Net (SAR Segmentation).<br>
+              [READY] Awaiting training trigger or live inference request...
+            </div>
+            <div class="footer-note" style="margin-top:14px;">
+              ⚠ <b>Simulation Mode Notice:</b> Connect real historical training datasets and PyTorch/FastAPI backend for production model re-training.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ LIVE MONITORING ============ -->
+      <section class="view" id="view-live">
+        <div class="grid g-2-1">
+          <div class="card" style="display:flex;flex-direction:column;">
+            <div class="card-head">
+              <div><h3>Live Interactive Satellite &amp; Radar View</h3><div class="sub">Real-time weather radar bands, wind flow, and sea surface temperature</div></div>
+              <span class="badge-live"><span class="dot"></span>Live Feed</span>
+            </div>
+            <div id="liveMap" class="map-container" style="height:360px;min-height:360px;"></div>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border-soft);font-size:12px;color:var(--text-faint);">
+              <button class="btn-outline" style="padding:5px 12px;font-weight:700;" id="playTimelineBtn">▶ Play</button>
+              <span id="timelineLabel" style="font-weight:600;color:var(--text-hi);white-space:nowrap;">4 Sep 2026 | 15:30 (IST)</span>
+              <div class="bar-track" style="flex:1;"><div class="bar-fill" id="timelineBar" style="width:75%;background:linear-gradient(90deg,var(--cyan),var(--blue));"></div></div>
+              <span style="color:var(--red);font-weight:700;white-space:nowrap;">● Live Stream</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><h3>Map Layer Controls</h3><div class="sub">Select atmospheric overlay layer</div></div></div>
+            <div style="display:flex;flex-direction:column;gap:10px;" id="liveLayerControls">
+              <button class="btn-outline active layer-btn" data-layer="radar">📡 Weather Radar &amp; Rainband</button>
+              <button class="btn-outline layer-btn" data-layer="wind">💨 Wind Flow Vectors</button>
+              <button class="btn-outline layer-btn" data-layer="sst">🌡️ Sea Surface Temp. (SST)</button>
+              <button class="btn-outline layer-btn" data-layer="clouds">☁️ Satellite Cloud Coverage</button>
+              <button class="btn-outline layer-btn" data-layer="pressure">⏱️ Isobaric Pressure Field</button>
+            </div>
+            <div class="footer-note" style="margin-top:20px;">
+              💡 <b>Interactive Layer Switcher:</b> Click any layer above to dynamically visualize live Doppler reflectivity, surface wind streams, warm SST anomalies, and pressure contours.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CYCLONE TRACKING ============ -->
+      <section class="view" id="view-tracking">
+        <div class="grid g-2-1">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Cyclone Track &amp; Uncertainty Cone</h3><div class="sub">Past path, current epicenter, and 72-hour forecast trajectory</div></div>
+            </div>
+            <div id="trackingMap" class="map-container" style="height:400px;"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Active System Telemetry</h3><span class="pill pill-red">Category 3</span></div>
+            <div class="env-row"><span class="l">Current Position</span><span class="v" style="color:var(--cyan);">18.4° N, 88.1° E</span></div>
+            <div class="env-row"><span class="l">Movement Direction</span><span class="v">North-West at 12 km/h</span></div>
+            <div class="env-row"><span class="l">Max Sustained Wind</span><span class="v" style="color:var(--red);">165 km/h</span></div>
+            <div class="env-row"><span class="l">Central Pressure</span><span class="v">960 hPa</span></div>
+            <div class="env-row"><span class="l">Estimated Landfall</span><span class="v" style="color:var(--amber);">Tomorrow, 15:30 IST</span></div>
+            <div style="font-size:11.5px;color:var(--text-faint);line-height:2;margin-top:16px;">
+              <span class="legend-dot" style="background:var(--red);"></span> Epicenter &nbsp;
+              <span class="legend-dot" style="background:var(--cyan);"></span> Forecast Track &nbsp;
+              <span class="legend-dot" style="background:rgba(51,199,232,0.3);"></span> 72h Cone
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CYCLONE PREDICTION ============ -->
+      <section class="view" id="view-prediction">
+        <div class="grid g-2-1">
+          <div class="card">
+            <div class="card-head"><div><h3>AI Movement &amp; Intensity Forecast</h3><div class="sub">72-hour forecast path and wind speed progression</div></div></div>
+            <div id="predictionMap" class="map-container" style="height:260px;margin-bottom:16px;"></div>
+            <div class="card-head"><h3 style="font-size:13px;">Predicted Wind Speed (km/h)</h3><span class="pill pill-green">Weakening Post Landfall</span></div>
+            <div class="chart-wrap"><canvas id="windChart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Model Diagnostics</h3></div>
+            <p style="font-size:12px;color:var(--text-faint);line-height:1.7;">Forecast generated by the CyclonEye Neural Model trained on 15 years of IMD best-track archives, INSAT infrared imagery, and GFS atmospheric reanalysis.</p>
+            <div style="margin-top:16px;" class="env-row"><span class="l">24h Track Precision</span><span class="v" style="color:var(--green);">92.4%</span></div>
+            <div class="env-row"><span class="l">24h Intensity Accuracy</span><span class="v" style="color:var(--amber);">84.1%</span></div>
+            <div class="env-row"><span class="l">Landfall Time Window</span><span class="v">± 4 Hours</span></div>
+            <div class="env-row"><span class="l">Model Architecture</span><span class="v">CE-SpatioTemporal-v2.4</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ FORMATION RISK ============ -->
+      <section class="view" id="view-formation">
+        <div class="grid g3">
+          <div class="card">
+            <div class="card-head"><h3>AI Cyclogenesis Risk</h3></div>
+            <div class="gauge-wrap">
+              <div class="gauge" id="formationGauge" style="--pct:72;"><div class="gauge-inner"><div class="pct" id="formationPct">72%</div><div class="lvl" id="formationLvl">High</div></div></div>
+              <p style="text-align:center;font-size:12px;color:var(--text-faint);margin-top:16px;" id="formationMsg">High probability of cyclone development in East-Central Bay of Bengal.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Interactive Risk Simulator</h3></div>
+            <p style="font-size:11.5px;color:var(--text-faint);margin-bottom:14px;">Adjust oceanic parameters below to simulate AI cyclogenesis risk:</p>
+            
+            <div style="margin-bottom:12px;">
+              <div class="env-row"><span class="l">🌡️ Sea Surface Temp</span><span class="v" id="simSstVal">29.8 °C</span></div>
+              <input type="range" id="simSst" min="24" max="34" step="0.2" value="29.8" style="width:100%;" />
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <div class="env-row"><span class="l">⏱️ Central Pressure</span><span class="v" id="simPressVal">1002 hPa</span></div>
+              <input type="range" id="simPress" min="970" max="1015" step="1" value="1002" style="width:100%;" />
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <div class="env-row"><span class="l">💧 Relative Humidity</span><span class="v" id="simHumVal">82 %</span></div>
+              <input type="range" id="simHum" min="40" max="100" step="1" value="82" style="width:100%;" />
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Atmospheric Assessment</h3></div>
+            <div class="env-row"><span class="l">Wind Shear</span><span class="v" style="color:var(--green);">Low (12 kts)</span></div>
+            <div class="env-row"><span class="l">Upper Divergence</span><span class="v" style="color:var(--amber);">High</span></div>
+            <div class="env-row"><span class="l">Convection Activity</span><span class="v" style="color:var(--amber);">Strong Bands</span></div>
+            <div class="footer-note" style="margin-top:20px;">
+              ⚠ Conditions over North-East Bay of Bengal remain highly conducive for storm intensification.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ FLOOD MAPPING ============ -->
+      <section class="view" id="view-flood">
+        <div class="grid g-2-1">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Sentinel-1 SAR Coastal Inundation Extent</h3><div class="sub">Synthetic Aperture Radar flood detection over Mahanadi River Delta</div></div>
+            </div>
+            
+            <div class="flood-slider-container" id="floodSliderBox">
+              <!-- TOP-LEFT SAR BADGE -->
+              <div class="sar-badge">
+                <span class="sar-dot-pulse"></span> SAR FLOOD DETECTION
+              </div>
+
+              <!-- TOP-RIGHT INFO OVERLAY -->
+              <div class="sar-info-overlay">
+                <div class="sar-sat">Sentinel-1 SAR</div>
+                <div class="sar-phase">Post-Landfall</div>
+                <div class="sar-status">Flood Detection: <span>ACTIVE</span></div>
+              </div>
+
+              <!-- BOTTOM-LEFT LEGEND -->
+              <div class="sar-legend">
+                <div class="sar-legend-item"><span class="sar-sq sq-inundated"></span> Inundated Area</div>
+                <div class="sar-legend-item"><span class="sar-sq sq-land"></span> Non-Inundated Land</div>
+                <div class="sar-legend-item"><span class="sar-sq sq-water"></span> River/Water Body</div>
+                <div class="sar-legend-item"><span class="sar-sq sq-settlement"></span> Settlement</div>
+              </div>
+
+              <!-- BEFORE LAYER (Pre-Storm Baseline SAR) -->
+              <div class="flood-img flood-before">
+                <svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" class="sar-svg">
+                  <defs>
+                    <pattern id="sarNoiseBase" width="4" height="4" patternUnits="userSpaceOnUse">
+                      <rect width="2" height="2" fill="#14261d" opacity="0.35"/>
+                      <rect x="2" y="2" width="2" height="2" fill="#0b1712" opacity="0.35"/>
+                    </pattern>
+                  </defs>
+                  <!-- Base Land -->
+                  <rect width="800" height="450" fill="#0d1f17"/>
+                  <rect width="800" height="450" fill="url(#sarNoiseBase)"/>
+
+                  <!-- Ocean (Bay of Bengal) -->
+                  <path d="M 520,0 C 560,120 540,250 620,320 C 680,370 740,400 800,420 L 800,0 Z" fill="#040d1a"/>
+                  <path d="M 520,0 C 560,120 540,250 620,320 C 680,370 740,400 800,420" fill="none" stroke="#16385c" stroke-width="2.5"/>
+
+                  <!-- Administrative Boundaries -->
+                  <path d="M 100,0 L 250,220 L 180,450" fill="none" stroke="#254336" stroke-width="1.5" stroke-dasharray="4,4"/>
+                  <path d="M 250,220 L 580,240" fill="none" stroke="#254336" stroke-width="1.5" stroke-dasharray="4,4"/>
+
+                  <!-- Pre-Storm River Channels -->
+                  <g fill="none" stroke="#0ea5e9" stroke-linecap="round">
+                    <path d="M 0,180 Q 140,160 260,210 T 450,250 T 590,270" stroke-width="4.5"/>
+                    <path d="M 260,210 Q 340,140 460,170 T 560,180" stroke-width="3"/>
+                    <path d="M 320,225 Q 400,280 500,310 T 580,330" stroke-width="2.5"/>
+                    <path d="M 120,0 Q 280,60 420,90 T 540,110" stroke-width="4"/>
+                    <path d="M 350,0 Q 450,40 520,60" stroke-width="2.5"/>
+                  </g>
+
+                  <!-- Settlements -->
+                  <g font-family="Inter, sans-serif" font-size="11" fill="#cbd5e1" font-weight="600">
+                    <circle cx="260" cy="210" r="3.5" fill="#f0a83c"/>
+                    <text x="270" y="214">Kendrapara</text>
+
+                    <circle cx="450" cy="250" r="3" fill="#f0a83c"/>
+                    <text x="460" y="254">Marshaghai</text>
+
+                    <circle cx="420" cy="90" r="3" fill="#f0a83c"/>
+                    <text x="430" y="94">Pattamundai</text>
+
+                    <circle cx="520" cy="60" r="3" fill="#f0a83c"/>
+                    <text x="530" y="64">Rajnagar</text>
+
+                    <circle cx="560" cy="180" r="3.5" fill="#f0a83c"/>
+                    <text x="570" y="184">Dhamra</text>
+
+                    <circle cx="580" cy="330" r="3.5" fill="#f0a83c"/>
+                    <text x="590" y="334">Paradip</text>
+                  </g>
+                </svg>
+              </div>
+
+              <!-- AFTER LAYER (Post-Landfall SAR Inundation Extent) -->
+              <div class="flood-img flood-after" id="floodAfterLayer">
+                <svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" class="sar-svg">
+                  <defs>
+                    <pattern id="sarNoiseAfter" width="4" height="4" patternUnits="userSpaceOnUse">
+                      <rect width="2" height="2" fill="#14261d" opacity="0.35"/>
+                      <rect x="2" y="2" width="2" height="2" fill="#0b1712" opacity="0.35"/>
+                    </pattern>
+
+                    <radialGradient id="floodGlow1" cx="40%" cy="50%" r="40%">
+                      <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.85"/>
+                      <stop offset="60%" stop-color="#0284c7" stop-opacity="0.65"/>
+                      <stop offset="100%" stop-color="#0369a1" stop-opacity="0.25"/>
+                    </radialGradient>
+
+                    <radialGradient id="floodGlow2" cx="65%" cy="65%" r="35%">
+                      <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.8"/>
+                      <stop offset="70%" stop-color="#0284c7" stop-opacity="0.55"/>
+                      <stop offset="100%" stop-color="#0369a1" stop-opacity="0.15"/>
+                    </radialGradient>
+                  </defs>
+
+                  <!-- Base Land -->
+                  <rect width="800" height="450" fill="#0d1f17"/>
+                  <rect width="800" height="450" fill="url(#sarNoiseAfter)"/>
+
+                  <!-- Ocean (Bay of Bengal) -->
+                  <path d="M 520,0 C 560,120 540,250 620,320 C 680,370 740,400 800,420 L 800,0 Z" fill="#040d1a"/>
+                  <path d="M 520,0 C 560,120 540,250 620,320 C 680,370 740,400 800,420" fill="none" stroke="#16385c" stroke-width="2.5"/>
+
+                  <!-- Administrative Boundaries -->
+                  <path d="M 100,0 L 250,220 L 180,450" fill="none" stroke="#254336" stroke-width="1.5" stroke-dasharray="4,4"/>
+                  <path d="M 250,220 L 580,240" fill="none" stroke="#254336" stroke-width="1.5" stroke-dasharray="4,4"/>
+
+                  <!-- River Networks -->
+                  <g fill="none" stroke="#0ea5e9" stroke-linecap="round">
+                    <path d="M 0,180 Q 140,160 260,210 T 450,250 T 590,270" stroke-width="4.5"/>
+                    <path d="M 260,210 Q 340,140 460,170 T 560,180" stroke-width="3"/>
+                    <path d="M 320,225 Q 400,280 500,310 T 580,330" stroke-width="2.5"/>
+                    <path d="M 120,0 Q 280,60 420,90 T 540,110" stroke-width="4"/>
+                    <path d="M 350,0 Q 450,40 520,60" stroke-width="2.5"/>
+                  </g>
+
+                  <!-- INUNDATED FLOOD REGIONS (BRIGHT CYAN / BLUE SAR DETECTED FLOODING) -->
+                  <g id="sarInundatedPolygons">
+                    <!-- Kendrapara & Marshaghai Primary Flooded Delta -->
+                    <path d="M 270,170 C 340,120 450,130 520,150 C 590,170 580,240 540,295 C 470,340 370,330 300,275 C 250,230 240,195 270,170 Z" 
+                          fill="url(#floodGlow1)" stroke="#00f0ff" stroke-width="2.5"/>
+                    
+                    <!-- Dhamra Estuary Secondary Flooded Zone -->
+                    <path d="M 440,35 C 520,25 570,65 580,115 C 590,160 530,175 480,135 C 430,105 410,55 440,35 Z" 
+                          fill="url(#floodGlow2)" stroke="#00f0ff" stroke-width="2"/>
+
+                    <!-- Outer Flood Outlines (SAR High Probability Inundation Border) -->
+                    <path d="M 270,170 C 340,120 450,130 520,150 C 590,170 580,240 540,295 C 470,340 370,330 300,275 Z" 
+                          fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="5,4"/>
+
+                    <!-- Flooded Hotspot Markers -->
+                    <circle cx="380" cy="215" r="5" fill="#00ffff" stroke="#ffffff" stroke-width="1.5"/>
+                    <circle cx="470" cy="235" r="5" fill="#00ffff" stroke="#ffffff" stroke-width="1.5"/>
+                    <circle cx="490" cy="95" r="5" fill="#00ffff" stroke="#ffffff" stroke-width="1.5"/>
+                  </g>
+
+                  <!-- Settlements -->
+                  <g font-family="Inter, sans-serif" font-size="11" fill="#ffffff" font-weight="700">
+                    <circle cx="260" cy="210" r="4" fill="#f0a83c" stroke="#fff" stroke-width="1"/>
+                    <text x="270" y="214" filter="drop-shadow(0 1px 3px rgba(0,0,0,0.9))">Kendrapara</text>
+
+                    <circle cx="450" cy="250" r="4" fill="#f0a83c" stroke="#fff" stroke-width="1"/>
+                    <text x="460" y="254" filter="drop-shadow(0 1px 3px rgba(0,0,0,0.9))">Marshaghai</text>
+
+                    <circle cx="420" cy="90" r="4" fill="#f0a83c" stroke="#fff" stroke-width="1"/>
+                    <text x="430" y="94" filter="drop-shadow(0 1px 3px rgba(0,0,0,0.9))">Pattamundai</text>
+
+                    <circle cx="520" cy="60" r="4" fill="#f0a83c" stroke="#fff" stroke-width="1"/>
+                    <text x="530" y="64" filter="drop-shadow(0 1px 3px rgba(0,0,0,0.9))">Rajnagar</text>
+
+                    <circle cx="560" cy="180" r="4" fill="#f0a83c" stroke="#fff" stroke-width="1"/>
+                    <text x="570" y="184" filter="drop-shadow(0 1px 3px rgba(0,0,0,0.9))">Dhamra</text>
+
+                    <circle cx="580" cy="330" r="4" fill="#f0a83c" stroke="#fff" stroke-width="1"/>
+                    <text x="590" y="334" filter="drop-shadow(0 1px 3px rgba(0,0,0,0.9))">Paradip</text>
+                  </g>
+                </svg>
+              </div>
+
+              <!-- DRAGGABLE SLIDER HANDLE -->
+              <div class="flood-handle" id="floodHandle"></div>
+            </div>
+
+            <!-- BOTTOM COMPARISON LABELS -->
+            <div style="font-size:12px;color:var(--text-dim);font-weight:600;margin-top:12px;display:flex;justify-content:space-between;">
+              <span>◀ Pre-Storm SAR</span>
+              <span>Post-Landfall SAR ▶</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>SAR Impact Assessment</h3></div>
+            <div class="mini-stat" style="margin-bottom:12px;"><div class="lbl">Total Submerged Area</div><div class="val" style="color:var(--cyan);">~ 420 km²</div></div>
+            <div class="mini-stat" style="margin-bottom:12px;"><div class="lbl">Estimated Population Inundated</div><div class="val" style="color:var(--amber);">~ 1.2 Lakh</div></div>
+            <div class="mini-stat" style="margin-bottom:16px;"><div class="lbl">Highest Inundated Zone</div><div class="val">Kendrapara Delta (18.5k ha)</div></div>
+            <button class="btn-sm" style="width:100%;justify-content:center;" onclick="switchView('shelters')">Find Nearby Relief Shelters →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ INFRASTRUCTURE RISK ============ -->
+      <section class="view" id="view-infra">
+        <div class="grid g-2-1">
+          <div class="card">
+            <div class="card-head"><div><h3>Coastal Infrastructure Vulnerability Map</h3><div class="sub">Power grids, ports, refineries, airports, and hospitals</div></div></div>
+            <div id="infraMap" class="map-container" style="height:320px;"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Vulnerability Matrix</h3></div>
+            <div class="tabbar" id="infraTabs">
+              <button class="tab active" data-filter="all">All</button>
+              <button class="tab" data-filter="power">Power</button>
+              <button class="tab" data-filter="transport">Transport</button>
+              <button class="tab" data-filter="health">Health</button>
+            </div>
+            <table id="infraTable">
+              <thead><tr><th>Asset Name</th><th>Sector</th><th>Risk</th><th>Score</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ SHELTERS & ROUTES ============ -->
+      <section class="view" id="view-shelters">
+        <div class="grid g-1-2">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Emergency Shelters &amp; Evacuation</h3><div class="sub">Locate nearest safe shelters and get turn-by-turn routes</div></div>
+            </div>
+            <div class="search-box" style="width:100%;margin-bottom:14px;">
+              🔍 <input type="text" id="shelterSearchInput" placeholder="Enter District or State (e.g. Khordha, Odisha)..." />
+            </div>
+            <div id="shelterList"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Evacuation Route Map</h3></div>
+            <div id="sheltersMap" class="map-container" style="height:380px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ALERTS & NOTIFICATIONS ============ -->
+      <section class="view" id="view-alerts">
+        <div class="card">
+          <div class="card-head">
+            <div><h3>Active Alerts &amp; Advisories</h3><div class="sub">Official IMD and OSDMA emergency broadcasts</div></div>
+            <button class="btn-outline" id="toggleSoundBtn">🔔 Enable Sound Alerts</button>
+          </div>
+          <div class="tabbar" id="alertTabs">
+            <button class="tab active" data-cat="all">All Bulletins</button>
+            <button class="tab" data-cat="cyclone">Cyclone Warnings</button>
+            <button class="tab" data-cat="flood">Storm Surge / Flood</button>
+          </div>
+          <div id="fullAlertsList"></div>
+        </div>
+      </section>
+
+      <!-- ============ HISTORICAL CYCLONES ============ -->
+      <section class="view" id="view-historical">
+        <div class="grid g-2-1">
+          <div class="card">
+            <div class="card-head"><div><h3>Historical Storm Archive</h3><div class="sub">Replay tracks and impact of major Indian cyclones</div></div></div>
+            <div class="mini-stat" style="margin-bottom:14px;">
+              <div class="lbl">Select Cyclone Record</div>
+              <select id="histSelect" style="width:100%;background:var(--panel-2);border:1px solid var(--border);color:var(--text-hi);padding:10px;border-radius:8px;font-size:13.5px;margin-top:6px;outline:none;">
+              </select>
+            </div>
+            <div class="grid g2">
+              <div class="mini-stat"><div class="lbl">Category</div><div class="val" id="hCat" style="color:var(--red);">Category 4</div></div>
+              <div class="mini-stat"><div class="lbl">Max Wind Speed</div><div class="val" id="hWind">215 km/h</div></div>
+              <div class="mini-stat"><div class="lbl">Landfall Date</div><div class="val" id="hLand">3 May 2019</div></div>
+              <div class="mini-stat"><div class="lbl">Impact Damage</div><div class="val" id="hDamage">$8.1 Billion</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Historical Trajectory</h3></div>
+            <div id="historicalMap" class="map-container" style="height:280px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ANALYTICS & REPORTS ============ -->
+      <section class="view" id="view-analytics">
+        <div class="grid g-2-1">
+          <div class="card">
+            <div class="card-head">
+              <div><h3>Annual Cyclone Frequency Trends</h3><div class="sub">5-Year Distribution in Bay of Bengal vs Arabian Sea</div></div>
+            </div>
+            <div class="chart-wrap"><canvas id="analyticsChart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>State Hazard Index</h3></div>
+            <div id="riskIndexList"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+          <button class="btn-sm" id="exportPdfBtn">📄 Download Official PDF Summary</button>
+          <button class="btn-outline" id="exportCsvBtn">📊 Export Dataset (CSV)</button>
+        </div>
+      </section>
+
+      <!-- ============ DATA SOURCES ============ -->
+      <section class="view" id="view-sources">
+        <div class="grid g3">
+          <div class="card"><div class="card-head"><h3>🛰️ IMD Archive</h3></div><p style="font-size:12.5px;color:var(--text-dim);line-height:1.7;">India Meteorological Department cyclone track bulletins, coastal Doppler radar feeds, and ocean warnings.</p></div>
+          <div class="card"><div class="card-head"><h3>📡 INSAT-3DR / 3DS</h3></div><p style="font-size:12.5px;color:var(--text-dim);line-height:1.7;">ISRO Geostationary satellite infrared &amp; water-vapor channels for eye structure and cloud top temperatures.</p></div>
+          <div class="card"><div class="card-head"><h3>🌐 Sentinel-1 SAR</h3></div><p style="font-size:12.5px;color:var(--text-dim);line-height:1.7;">European Space Agency Synthetic Aperture Radar for cloud-penetrating flood inundation mapping.</p></div>
+        </div>
+      </section>
+
+      <!-- ============ SETTINGS ============ -->
+      <section class="view" id="view-settings">
+        <div class="grid g2" style="max-width:960px;">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>🎨 Appearance &amp; Theme</h3>
+                <div class="sub">Choose your visual color theme for the CyclonEye dashboard</div>
+              </div>
+            </div>
+            <div class="theme-selector-grid">
+              <div class="theme-card-option active" id="themeOptDark" onclick="setTheme('dark')">
+                <div class="t-icon">🌙</div>
+                <div>
+                  <div class="t-title">Dark Theme</div>
+                  <div class="t-desc">Cyber Navy dark mode optimized for low-light command centers</div>
+                </div>
+              </div>
+              <div class="theme-card-option" id="themeOptLight" onclick="setTheme('light')">
+                <div class="t-icon">☀️</div>
+                <div>
+                  <div class="t-title">Light Theme</div>
+                  <div class="t-desc">Clean, high-contrast light mode for daytime operation &amp; printing</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>Platform Settings &amp; Preferences</h3></div>
+            <div class="env-row"><span class="l">Units System</span><span class="v">Metric (km/h, hPa)</span></div>
+            <div class="env-row"><span class="l">Default Region</span><span class="v">Pan-India Coastal Belt</span></div>
+            <div class="env-row"><span class="l">Audio Alert Beacon</span><span class="v" style="color:var(--green);">Active</span></div>
+            <div class="env-row"><span class="l">Model Version</span><span class="v">v1.0 (XGBoost + LSTM + U-Net)</span></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- jsPDF for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- App Components -->
+<script src="js/map.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/simulator.js"></script>
+<script src="js/shelters.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
